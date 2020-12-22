@@ -1,3 +1,6 @@
+import React from 'react';
+import { SectionList, StyleSheet, Text, View } from 'react-native';
+import { FlatList } from 'react-native-gesture-handler';
 const PEOPLE = [
   {
     name: {
@@ -700,3 +703,88 @@ const PEOPLE = [
     },
   },
 ];
+const groupPeopleByLastName = function (_data) {
+  const data = [..._data];
+  const groupedData = data.reduce((accumulator, item) => {
+    const group = item.name.last[0].toUpperCase();
+
+    if (accumulator[group]) {
+      accumulator[group].data.push(item);
+    } else {
+      accumulator[group] = {
+        title: group,
+        data: [item],
+      };
+    }
+
+    return accumulator;
+  }, {});
+
+  const sections = Object.keys(groupedData).map((key) => {
+    return groupedData[key];
+  });
+
+  return sections.sort((a, b) => {
+    if (a.title > b.title) {
+      return 1;
+    }
+    return -1;
+  });
+}(PEOPLE);
+
+const renderSectionHeader = ({ section }) => (
+  <View style={styles.sectionHeader} >
+    <Text>{section.title}</Text>
+  </View>
+)
+
+const renderItem = ({ item }) => (
+  <View style={styles.row}>
+    <Text style={styles.name}>{`${item.name.last}, ${item.name.first}`}</Text>
+  </View>
+)
+
+const keyExtractor = (item) => `${item.name.first}-${item.name.last}`;
+
+const itemSeparator = () => <View style={styles.separator} />;
+
+export default () => {
+  return (
+    // <FlatList style={styles.container}
+    //   data={PEOPLE}
+    //   renderItem={renderItem}
+    //   keyExtractor={(item) => `${item.name.first}-${item.name.last}`}
+    //   ItemSeparatorComponent={() => <View style={styles.separator} />}
+    // ></FlatList>
+
+    <SectionList style={styles.container}
+      sections={groupPeopleByLastName}
+      keyExtractor={keyExtractor}
+      renderItem={renderItem}
+      renderSectionHeader={renderSectionHeader}
+      ItemSeparatorComponent={itemSeparator}
+    />
+  )
+}
+
+const styles = StyleSheet.create({
+  container: {
+    height: 0
+  },
+  sectionHeader: {
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    backgroundColor: "rgb(170, 170, 170))",
+  },
+  row: {
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+  },
+  name: {
+    fontSize: 16,
+  },
+  separator: {
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    height: 1,
+  },
+});
