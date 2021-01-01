@@ -1,5 +1,5 @@
-import React from "react";
-import { FlatList, Text, View, StyleSheet, SafeAreaView } from "react-native";
+import React, { useEffect, useState } from "react";
+import { FlatList, Text, View, StyleSheet, SafeAreaView, ActivityIndicator } from "react-native";
 
 const styles = StyleSheet.create({
   row: {
@@ -15,14 +15,36 @@ const styles = StyleSheet.create({
   },
 });
 
+const usePeople = () => {
+  const [loading, setLoading] = useState(true)
+  const [people, setPeople] = useState([])
+
+  useEffect(() => {
+    fetch('https://randomuser.me/api/?results=100&inc=name')
+      .then(response => response.json())
+      .then(json => {
+        const ordererArray = json.results.sort((a, b) => a.name.first > b.name.first ? 1 : -1)
+        setPeople(ordererArray);
+      })
+      .catch(error => console.error(error))
+      .finally(() => setTimeout(() => setLoading(false), 1000))
+  }, [])
+
+  return {
+    loading,
+    people
+  }
+}
+
 export default () => {
+  const { loading, people } = usePeople()
+  if (loading) {
+    return <ActivityIndicator style={{ marginTop: 50 }} />
+  }
   return (
     <SafeAreaView>
-      <FlatList
-        data={[
-          { name: { title: "Monsieur", first: "Emilio", last: "Legrand" } },
-          { name: { title: "Miss", first: "Linda", last: "King" } },
-        ]}
+      <FlatList style={{ height: '78vh' }}
+        data={people}
         keyExtractor={(item) => `${item.name.first}-${item.name.last}`}
         renderItem={({ item }) => {
           return (
